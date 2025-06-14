@@ -71,62 +71,10 @@ Follow these steps to set up and run the rocket simulation on your local machine
 
 ### Installation
 
-1.  **Clone the repository:**
+**Clone the repository:**
     ```bash
-    git clone [https://github.com/your-username/rocket_simulation.git](https://github.com/your-username/rocket_simulation.git)
+    git clone [https://github.com/dorvarsul/rocket_simulation.git](https://github.com/your-username/rocket_simulation.git)
     cd rocket_simulation
-    ```
-    (Replace `https://github.com/your-username/rocket_simulation.git` with the actual URL if this project is hosted.)
-
-2.  **Create a Python Virtual Environment (recommended):**
-    Virtual environments keep your project dependencies isolated from your system's global Python packages.
-    ```bash
-    python -m venv venv
-    ```
-
-3.  **Activate the Virtual Environment:**
-    * **On Windows:**
-        ```bash
-        .\venv\Scripts\activate
-        ```
-    * **On macOS/Linux:**
-        ```bash
-        source venv/bin/activate
-        ```
-
-4.  **Install Required Libraries:**
-    With your virtual environment activated, install the necessary Python packages:
-    ```bash
-    pip install numpy matplotlib pandas pyyaml
-    ```
-
-5.  **Configure `.gitignore` (if not already set up):**
-    To keep your repository clean, ensure generated files like `__pycache__` and the `venv` folder are ignored by Git. Create a file named `.gitignore` in the root of your `rocket_simulation/` directory and add these lines:
-    ```gitignore
-    # Python bytecode
-    __pycache__/
-    *.pyc
-
-    # Virtual environment directory
-    venv/
-
-    # Operating System temporary files
-    .DS_Store
-    Thumbs.db
-
-    # Editor/IDE specific files
-    .vscode/
-    .idea/
-    *.sublime-project
-    *.sublime-workspace
-    ```
-    If these files were already committed before adding to `.gitignore`, you'll need to untrack them:
-    ```bash
-    git rm -r --cached __pycache__/
-    git rm --cached *.pyc
-    git rm -r --cached venv/
-    git commit -m "Stop tracking ignored files"
-    git push # if you've already pushed these files to a remote
     ```
 
 ---
