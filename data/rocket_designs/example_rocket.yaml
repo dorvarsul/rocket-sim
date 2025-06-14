@@ -1,20 +1,42 @@
 # --- Rocket Design: Example Falcon 9-like First Stage ---
+# This file defines the physical properties and initial conditions of the rocket
+# for the simulation. You can create multiple such files for different rocket designs.
+
 # Masses (in kg)
 mass:
-  initial: 59054.0 # Total mass at launch, including propellant
-  dry: 22200.0 # Mass of the rocket structure alone
+  initial: 549054.0 # Total mass of the rocket at launch, including propellant.
+  dry: 22200.0      # Mass of the rocket structure only (after all propellant is burned and ejected).
 
 # Engine Parameters
 engine:
-  thrust_N: 7600000.0 # Total Thrust (newtons)
-  burn_time_s: 162.0 # seconds
+  thrust_N: 7620000.0 # Total thrust produced by the engine(s) in Newtons (N).
+                      # Example: 7600 kN for Falcon 9 first stage.
+  burn_time_s: 162.0  # Duration for which the engine fires in seconds.
+                      # Propellant is consumed over this period.
 
 # Aerodynamic Parameters
 aerodynamics:
-  drag_coefficient: 0.4 # Drag Coefficient (unitless)
-  cross_sectional_area_m2: 10.75 # Reference area for drag calculation (m^2)
+  drag_coefficient: 0.4 # Dimensionless coefficient representing aerodynamic drag.
+                        # Varies based on rocket shape and Mach number. This is a simplified constant.
+  cross_sectional_area_m2: 10.75 # The effective cross-sectional area exposed to airflow in square meters (m^2).
+                                 # For a cylindrical rocket, this is pi * (radius)^2.
+                                 # Example: For Falcon 9 diameter of 3.7m, radius=1.85m -> pi*(1.85)^2 approx 10.75 m2.
 
 # Initial State
+# Defines the rocket's state at the very beginning of the simulation (time = 0).
 initial_state:
-  position_m: [0.0, 0.0, 0.0] # [x,y,z] (ground level)
-  velocity_ms: [0.0, 0.0, 0.0] # [vx, vy, vz] (starts at rest)
+  position_m: [0.0, 0.0, 0.0] # Initial position in meters [X, Y, Z].
+                              # [0.0, 0.0, 0.0] typically represents the launch pad at ground level.
+  initial_speed_ms: 0.0       # Initial scalar speed of the rocket in meters per second (m/s).
+                              # 0.0 means it starts from rest.
+  # Initial direction of thrust (normalized vector)
+  # This vector determines the initial orientation of the rocket and the direction
+  # in which thrust is applied throughout the burn.
+  # The simulation will normalize this vector, so its magnitude doesn't matter, only direction.
+  #
+  # Examples:
+  #   [0.0, 0.0, 1.0]          :  Straight vertical launch (default)
+  #   [1.0, 0.0, 0.0]          :  Horizontal launch along the positive X-axis
+  #   [0.70710678, 0.0, 0.70710678] : Approximately 45 degrees in the X-Z plane (1/sqrt(2) for unit vector)
+  #   [0.0, -0.5, 0.866]       :  A specific direction in Y-Z plane (note: will be normalized)
+  initial_direction_vector: [1.0, 0.0, 1.0] # Set your desired initial thrust direction here

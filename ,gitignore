@@ -1,0 +1,9 @@
+# Python bytecode files
+__pycache__/
+*.pyc
+
+# Virtual environment directory
+venv/
+
+# Editor/IDE specific files
+.vscode/ # VS Code settings, if you use it

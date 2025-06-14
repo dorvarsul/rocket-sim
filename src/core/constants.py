@@ -1,3 +1,5 @@
+# src/core/constants.py
+
 import numpy as np
 
 # --- Universal Constants ---
@@ -23,3 +25,7 @@ ATM_SCALE_HEIGHT = 8500.0
 TIME_STEP = 0.1
 # Maximum duration of the simulation (seconds)
 SIMULATION_DURATION = 600.0 # e.g., 10 minutes to see ascent and descent
+
+# --- NEW: Rocket Configuration Parameter ---
+# Name of the YAML file defining the rocket's design in data/rocket_designs/
+ROCKET_CONFIG_FILENAME = "small_rocket.yaml"
