@@ -1,0 +1,20 @@
+# --- Rocket Design: Example Falcon 9-like First Stage ---
+# Masses (in kg)
+mass:
+  initial: 1000 # Total mass at launch, including propellant
+  dry: 300 # Mass of the rocket structure alone
+
+# Engine Parameters
+engine:
+  thrust_N: 10000.0 # Total Thrust (newtons)
+  burn_time_s: 80.0 # seconds
+
+# Aerodynamic Parameters
+aerodynamics:
+  drag_coefficient: 0.4 # Drag Coefficient (unitless)
+  cross_sectional_area_m2: 10.75 # Reference area for drag calculation (m^2)
+
+# Initial State
+initial_state:
+  position_m: [0.0, 0.0, 0.0] # [x,y,z] (ground level)
+  velocity_ms: [0.0, 0.0, 0.0] # [vx, vy, vz] (starts at rest)
