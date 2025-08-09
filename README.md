@@ -69,6 +69,7 @@ Follow these steps to set up and run the rocket simulation on your local machine
 To run a simulation, simply execute the `run_simulation.py` script:
 
 1.  **Activate your virtual environment**.
+1.  **Activate your virtual environment**.
 2.  **Run the script from the project root:**
     ```bash
     python3 -m scripts.run_simulation
