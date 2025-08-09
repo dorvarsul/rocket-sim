@@ -71,7 +71,7 @@ To run a simulation, simply execute the `run_simulation.py` script:
 1.  **Activate your virtual environment**.
 2.  **Run the script from the project root:**
     ```bash
-    python scripts/run_simulation.py
+    python3 scripts/run_simulation.py
     ```
     The script will load the rocket design specified in `src/core/constants.py` (by default, `example_rocket.yaml`), run the simulation, display console output, and pop up the plots.
 
