@@ -110,3 +110,6 @@ The current simulation uses simplified models for clarity and computational effi
 * **Fixed Thrust Direction:** The direction of thrust is constant throughout the engine burn, as defined in `initial_direction_vector`.
 * **Simplified Atmosphere:** Uses a basic exponential model for atmospheric density.
 * **Euler Integration:** A basic numerical method is used for integrating forces to update velocity and position. While simple, it can accumulate errors over long simulations. For more advanced simulations, consider higher-order integration methods (e.g., Runge-Kutta).
+
+## Example Output
+<img width="1497" height="966" alt="image" src="https://github.com/user-attachments/assets/597de978-e63a-4df8-bcba-7c56d1e1a04f" />
