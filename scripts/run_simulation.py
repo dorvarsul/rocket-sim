@@ -5,10 +5,6 @@ This script provides the main entry point for running a basic rocket simulation.
 It loads rocket parameters from a YAML configuration file, simulates its trajectory
 under the influence of thrust, gravity, and atmospheric drag using a numerical
 integration method, and then visualizes the results through 2D and 3D plots.
-
-The simulation assumes a fixed thrust direction (defined in the config) during
-the engine burn and a constant gravitational acceleration. Atmospheric density
-is modeled exponentially with altitude.
 """
 
 import numpy as np
@@ -27,17 +23,6 @@ from src.core.atmosphere import get_air_density # Function to calculate air dens
 def load_rocket_config(config_filepath: str) -> dict | None:
     """
     Loads rocket parameters from a YAML configuration file.
-
-    This function attempts to open and parse a YAML file at the given filepath.
-    It's robust against file not found errors and YAML parsing issues.
-
-    Args:
-        config_filepath (str): The full path to the YAML configuration file
-                               (e.g., 'data/rocket_designs/example_rocket.yaml').
-
-    Returns:
-        dict | None: A dictionary containing the loaded configuration if the file
-                     is found and parsed successfully, otherwise returns None.
     """
     try:
         with open(config_filepath, 'r') as file:
@@ -53,30 +38,9 @@ def load_rocket_config(config_filepath: str) -> dict | None:
 def run_simulation(rocket_config_name: str = "example_rocket.yaml"):
     """
     Executes the rocket trajectory simulation using parameters from a specified config file.
-
-    This function orchestrates the entire simulation process:
-    1. Loads rocket design parameters and initial state.
-    2. Initializes the Rocket object.
-    3. Runs a time-stepping loop, calculating forces (thrust, gravity, drag).
-    4. Updates the rocket's state (position, velocity, mass) at each step.
-    5. Stores simulation data for later analysis and plotting.
-    6. Returns the collected data arrays.
-
-    Args:
-        rocket_config_name (str): The filename of the rocket configuration
-                                  (e.g., "example_rocket.yaml"). This file
-                                  is expected to be located within the
-                                  `data/rocket_designs/` directory.
-
-    Returns:
-        tuple: A tuple containing six NumPy arrays of simulation data:
-               (times, positions, velocities, masses, altitudes, speeds).
-               Returns (None, None, None, None, None, None) if the rocket
-               configuration file cannot be loaded successfully.
     """
-    # Construct the absolute path to the configuration file.
-    # This makes the script portable, allowing it to find the config regardless
-    # of the current working directory from which the script is executed.
+
+    # Load the YAML file
     current_dir = os.path.dirname(__file__)
     config_filepath = os.path.join(current_dir, '..', 'data', 'rocket_designs', rocket_config_name)
     config_filepath = os.path.abspath(config_filepath)
@@ -84,30 +48,27 @@ def run_simulation(rocket_config_name: str = "example_rocket.yaml"):
     # Attempt to load the rocket's configuration data
     rocket_data = load_rocket_config(config_filepath)
     if not rocket_data:
-        # If loading fails, print an error and return empty data
         print("Failed to load rocket configuration. Exiting simulation.")
         return None, None, None, None, None, None
 
     # --- Extract simulation parameters from the loaded configuration ---
     # Rocket mass properties
-    initial_mass = rocket_data['mass']['initial']      # Total mass at launch (kg)
-    dry_mass = rocket_data['mass']['dry']              # Mass after propellant is exhausted (kg)
+    initial_mass = rocket_data['mass']['initial']
+    dry_mass = rocket_data['mass']['dry']
 
     # Engine performance parameters
-    engine_thrust = rocket_data['engine']['thrust_N']  # Constant thrust force (Newtons)
-    engine_burn_time = rocket_data['engine']['burn_time_s'] # Duration of engine burn (seconds)
+    engine_thrust = rocket_data['engine']['thrust_N']
+    engine_burn_time = rocket_data['engine']['burn_time_s']
 
     # Aerodynamic properties
-    drag_coefficient = rocket_data['aerodynamics']['drag_coefficient'] # Dimensionless drag coefficient
-    cross_sectional_area = rocket_data['aerodynamics']['cross_sectional_area_m2'] # Frontal area for drag calculation (m^2)
+    drag_coefficient = rocket_data['aerodynamics']['drag_coefficient']
+    cross_sectional_area = rocket_data['aerodynamics']['cross_sectional_area_m2']
 
     # Calculate propellant mass and mass flow rate
     propellant_mass = initial_mass - dry_mass
-    # Mass flow rate is calculated only if burn time is positive to avoid division by zero
     engine_mass_flow_rate = propellant_mass / engine_burn_time if engine_burn_time > 0 else 0.0
 
-    # --- Set up Initial State of the Rocket ---
-    # Define default values for initial state parameters in case they are missing from the YAML
+    # --- Set up Initial State of the Rocket (Default parameters) ---
     default_initial_position = np.array([0.0, 0.0, 0.0]) # Default start at origin [x, y, z]
     default_initial_velocity = np.array([0.0, 0.0, 0.0]) # Default start from rest [vx, vy, vz]
     default_initial_direction = np.array([0.0, 0.0, 1.0]) # Default thrust direction: straight up
@@ -119,19 +80,15 @@ def run_simulation(rocket_config_name: str = "example_rocket.yaml"):
     # Retrieve initial thrust direction from config
     initial_thrust_direction = np.array(rocket_data.get('initial_state', {}).get('initial_direction_vector', default_initial_direction.tolist()))
     
-    # Normalize the initial thrust direction vector. This ensures it's a unit vector,
-    # meaning only its direction is used for thrust application, not its magnitude.
     dir_magnitude = np.linalg.norm(initial_thrust_direction)
-    # Check if the magnitude is close to zero to prevent division by zero errors.
-    # If it is, default to a vertical thrust direction.
-    if dir_magnitude > 1e-9: # A small threshold to account for floating-point inaccuracies
+
+    if dir_magnitude > 1e-9: # To avoid dividing by Zero
         initial_thrust_direction = initial_thrust_direction / dir_magnitude
     else:
         initial_thrust_direction = default_initial_direction
         print("Warning: Initial direction vector was invalid (zero or near-zero), defaulting to [0,0,1] (vertical).")
 
     # --- NEW: Pre-flight Check: Thrust-to-Weight Ratio ---
-    # Calculate the initial weight of the rocket (force due to gravity at launch)
     initial_weight = initial_mass * constants.G0
 
     # Calculate the effective vertical component of the initial thrust.
@@ -171,36 +128,25 @@ def run_simulation(rocket_config_name: str = "example_rocket.yaml"):
     )
 
     # --- Data Storage for Simulation Results ---
-    # Initialize lists to store the rocket's state at each time step.
-    # These will later be converted to NumPy arrays for efficient plotting and analysis.
     current_time = 0.0
-    times = [current_time]        # List of time points (seconds)
-    positions = [rocket.position.copy()] # List of [x, y, z] position vectors (meters)
-    velocities = [rocket.velocity.copy()]# List of [vx, vy, vz] velocity vectors (m/s)
-    masses = [rocket.mass]        # List of rocket mass (kg)
-    altitudes = [rocket.altitude] # List of altitude (z-component of position) (meters)
-    speeds = [rocket.speed]       # List of scalar speed (magnitude of velocity) (m/s)
+    times = [current_time]
+    positions = [rocket.position.copy()]
+    velocities = [rocket.velocity.copy()]
+    masses = [rocket.mass]
+    altitudes = [rocket.altitude]
+    speeds = [rocket.speed]
 
 
     # --- Main Simulation Loop ---
-    # The loop continues as long as the simulation duration is not exceeded
-    # and the rocket remains above or at ground level (allowing slight negative for visual impact of impact)
     while current_time < constants.SIMULATION_DURATION and rocket.altitude >= -1.0:
-        # 1. Calculate all forces acting on the rocket at the current time step.
-        
-        # Thrust Force: Active only during the engine's burn time.
-        # Its direction is fixed by the `initial_thrust_direction` loaded from config.
         if current_time <= engine_burn_time:
             thrust_force = initial_thrust_direction * engine_thrust
         else:
             thrust_force = np.array([0.0, 0.0, 0.0]) # No thrust after engine cutoff
         
-        # Gravity Force: A constant downward force based on rocket's current mass and G0.
-        # This simplifies Earth's gravity to be constant regardless of altitude.
         gravity_force = np.array([0.0, 0.0, -rocket.mass * constants.G0])
 
         # Drag Force: Opposes the rocket's current direction of motion.
-        # First, determine the air density at the rocket's current altitude.
         current_air_density = get_air_density(rocket.altitude,
                                             constants.ATM_SEA_LEVEL_DENSITY,
                                             constants.ATM_SCALE_HEIGHT)
@@ -247,15 +193,9 @@ def run_simulation(rocket_config_name: str = "example_rocket.yaml"):
 if __name__ == "__main__":
     # --- Main Execution Block ---
     # This block of code runs only when the script is executed directly (not when imported as a module).
-
-    # Specify which rocket configuration file to load for this simulation run.
-    # The filename is retrieved from `constants.py` for easy configuration.
     rocket_config_filename = constants.ROCKET_CONFIG_FILENAME
 
     # --- Dependency Check ---
-    # This `try-except` block attempts to import all necessary third-party libraries.
-    # If any are missing, it prints an informative error message and instructs the user
-    # on how to install them, then exits the script.
     try:
         import numpy as np
         import matplotlib.pyplot as plt
@@ -272,11 +212,8 @@ if __name__ == "__main__":
     times, positions, velocities, masses, altitudes, speeds = run_simulation(rocket_config_filename)
 
     # Proceed with plotting and analysis only if the simulation ran successfully
-    # (i.e., if `times` is not None, indicating that configuration loading succeeded).
     if times is not None:
         # Convert the collected raw simulation data into a Pandas DataFrame.
-        # DataFrames provide a convenient, labeled structure for data access and manipulation,
-        # which simplifies plotting and analysis.
         df = pd.DataFrame({
             'time': times,          # Simulation time
             'x': positions[:, 0],   # X-coordinate of position
@@ -291,12 +228,7 @@ if __name__ == "__main__":
 
         # --- Combined Plotting Section ---
         # Create a single Matplotlib figure to display all the plots together.
-        # The `figsize` is adjusted to provide ample space for multiple subplots.
         fig = plt.figure(figsize=(15, 12)) 
-
-        # Define a GridSpec for flexible arrangement of subplots.
-        # This sets up a 3-row by 2-column grid. `height_ratios` gives the bottom row
-        # (for the 3D plot) more vertical space, making it visually prominent.
         gs = fig.add_gridspec(3, 2, height_ratios=[1, 1, 1.5]) 
 
         # Plot 1: Altitude vs. Time (converted to Kilometers)
@@ -332,8 +264,6 @@ if __name__ == "__main__":
         ax4.grid(True)
 
         # Plot 5: 3D Trajectory Plot
-        # This subplot spans both columns of the bottom row (row index 2, all columns [:])
-        # The 'projection='3d'' argument is crucial for creating a 3D axes.
         ax5 = fig.add_subplot(gs[2, :], projection='3d') 
         ax5.plot(df['x'], df['y'], df['z'] / 1000, label='Rocket Trajectory', color='purple')
         ax5.set_xlabel('X Position (m)')
@@ -342,8 +272,6 @@ if __name__ == "__main__":
         ax5.set_title(f'Rocket Trajectory 3D Plot ({rocket_config_filename.split(".")[0]})')
         ax5.grid(True)
         
-        # Add visual markers to the 3D plot for better context:
-        # Mark the launch site (origin) with a red circle.
         ax5.scatter([0], [0], [0], color='red', marker='o', s=100, label='Launch Site (0,0,0)', alpha=0.7)
         # Mark the final position of the rocket (e.g., impact point) with a blue triangle.
         ax5.scatter([df['x'].iloc[-1]], [df['y'].iloc[-1]], [df['z'].iloc[-1]/1000],
@@ -354,7 +282,6 @@ if __name__ == "__main__":
         plt.show() # Display the single figure containing all plots
 
         # --- Console Output of Key Simulation Metrics ---
-        # Print important results to the console for quick summary.
         print(f"\n--- Simulation Results for {rocket_config_filename.split('.')[0]} ---")
         print(f"Max Altitude: {df['z'].max():.2f} m ({df['z'].max()/1000:.2f} km)")
         print(f"Max Speed: {df['speed'].max():.2f} m/s")
