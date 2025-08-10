@@ -4,12 +4,12 @@
 
 # Masses (in kg)
 mass:
-  initial: 1000.0 # Total mass of the rocket at launch, including propellant.
-  dry: 300.0      # Mass of the rocket structure only (after all propellant is burned and ejected).
+  initial: 2500.0 # Total mass of the rocket at launch, including propellant.
+  dry: 1000.0      # Mass of the rocket structure only (after all propellant is burned and ejected).
 
 # Engine Parameters
 engine:
-  thrust_N: 15000.0 # Total thrust produced by the engine(s) in Newtons (N).
+  thrust_N: 35000.0 # Total thrust produced by the engine(s) in Newtons (N).
   burn_time_s: 80.0  # Duration for which the engine fires in seconds.
                       # Propellant is consumed over this period.
 
@@ -37,4 +37,4 @@ initial_state:
   #   [1.0, 0.0, 0.0]          :  Horizontal launch along the positive X-axis
   #   [0.70710678, 0.0, 0.70710678] : Approximately 45 degrees in the X-Z plane (1/sqrt(2) for unit vector)
   #   [0.0, -0.5, 0.866]       :  A specific direction in Y-Z plane (note: will be normalized)
-  initial_direction_vector: [1.0, 0, 1.0] # Set your desired initial thrust direction here
+  initial_direction_vector: [0.05, 0, 0.90] # Set your desired initial thrust direction here
